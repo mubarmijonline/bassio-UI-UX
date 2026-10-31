@@ -39,6 +39,8 @@ iframe{border:0;background:#fff}
 <main id="main"></main>
 <div class="hint">Mobile View shows the app inside a 390 × 844 phone frame. On an actual phone the app opens full-screen automatically.</div>
 <script>
+// Phones open the prototype directly: iOS Safari stretches iframes to content height, which breaks scrolling.
+if(window.matchMedia("(max-width:600px)").matches||/iPhone|Android.+Mobile/i.test(navigator.userAgent)){location.replace("app.html");}
 const main=document.getElementById('main');
 function show(){
   let v=(location.hash||'').slice(1);
