@@ -310,22 +310,22 @@ main{padding-block:18px 48px}
 .gcard .gh{background:var(--g-golddark);color:#fff;display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:10px 14px;font-size:13px;font-weight:700}
 .gcard .gh :last-child{text-align:right}
 .gcard .gh .mid{text-align:center;font-weight:700}
-.gcard .cols,.grow{display:grid;grid-template-columns:46px minmax(0,1fr) repeat(5,30px);gap:4px;align-items:center}
+.gcard .cols,.grow{display:grid;grid-template-columns:40px minmax(0,1fr) repeat(5,28px);gap:3px;align-items:center}
 @media (min-width:520px){.gcard .cols,.grow{grid-template-columns:70px minmax(0,1fr) repeat(5,48px);gap:6px}.cell{font-size:18px}}
-.gcard .cols{background:var(--navy);color:#fff;padding:8px 10px;font-size:11px;font-weight:700;text-align:center}
+.gcard .cols{background:var(--navy);color:#fff;padding:8px 10px;font-size:10px;font-weight:700;text-align:center}
 .gcard .cols span:nth-child(2){text-align:left}
 .gcard .rows{display:flex;flex-direction:column;gap:8px;padding:10px;background:var(--bg)}
 .grow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;position:relative}
 .grow.me{border:2px solid var(--gold);background:linear-gradient(90deg,#fff 0%,var(--goldlight) 45%,#fff 100%)}
-.pos{justify-self:center;background:var(--navy);color:#fff;border-radius:7px;padding:5px 6px;font-size:11px;font-weight:700;line-height:1;text-align:center}
+.pos{justify-self:center;background:var(--navy);color:#fff;border-radius:7px;padding:5px 5px;font-size:10.5px;font-weight:700;line-height:1;text-align:center}
 .grow.me .pos{background:var(--g-navy)}
 .players{display:flex;flex-direction:column;gap:6px;min-width:0}
-.pl{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--navy);min-width:0}
-.pl i{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl .full{display:none}@media (min-width:520px){.pl .full{display:inline}.pl .short{display:none}.pl{font-size:13px}}
+.pl{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--navy);min-width:0}
+.pl i{font-style:normal;line-height:1.15;overflow-wrap:anywhere}
+.full{display:none}.short{display:inline}@media (min-width:520px){.full{display:inline}.short{display:none}.pl{font-size:13px}}
 .pl .av{flex:none;width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--navy);font-size:9px;font-weight:800;display:grid;place-items:center;border:1.5px solid #fff;box-shadow:0 0 0 1px var(--gold)}
 .pl .av.b{background:var(--blue);color:#fff;box-shadow:0 0 0 1px var(--blue)}
-.cell{font-family:var(--display);font-size:16px;text-align:center;color:var(--navy);background:var(--surface-2);border-radius:8px;padding:6px 2px;line-height:1}
+.cell{font-family:var(--display);font-size:15px;text-align:center;color:var(--navy);background:var(--surface-2);border-radius:7px;padding:6px 0;line-height:1}
 .grow.me .cell{background:#fff}
 .cell.w{color:var(--green)}.cell.l{color:var(--wred)}.cell.gdp{color:var(--green)}.cell.gdn{color:var(--wred)}
 /* match card (reference design) */
@@ -525,7 +525,7 @@ function tourModal(id){const t=TOUR.find(x=>x.id==id);
  const players=(p1,p2,me)=>`<div class="players"><span class="pl">${av(p1,!me)}<i class="full">${p1}</i><i class="short">${short(p1)}</i></span><span class="pl">${av(p2,!me)}<i class="full">${p2}</i><i class="short">${short(p2)}</i></span></div>`;
  const ord=['1st','2nd','3rd','4th','5th','6th','7th'];
  const grow=(i,p1,p2,P,W,L,Pts,GD,me)=>`<div class="grow ${me?'me':''}"><span class="pos">${ord[i]}</span>${players(p1,p2,me)}<span class="cell">${P}</span><span class="cell w">${W}</span><span class="cell l">${L}</span><span class="cell">${Pts}</span><span class="cell ${GD>=0?'gdp':'gdn'}">${GD>0?'+':''}${GD}</span></div>`;
- const group=`<div class="gcard"><div class="gh"><span>Group 2</span><span class="mid">${t.date} · 06:00 PM</span><span>Court 3</span></div><div class="cols"><span>Position</span><span>Team</span><span>P</span><span>W</span><span>L</span><span>Pts</span><span>GD</span></div><div class="rows">
+ const group=`<div class="gcard"><div class="gh"><span>Group 2</span><span class="mid">${t.date} · 06:00 PM</span><span>Court 3</span></div><div class="cols"><span><i class="full" style="font-style:normal">Position</i><i class="short" style="font-style:normal">Pos</i></span><span>Team</span><span>P</span><span>W</span><span>L</span><span>Pts</span><span>GD</span></div><div class="rows">
  ${grow(0,'Youssef Hany','Mostafa Saeed',3,3,0,9,9)}${grow(1,'Bassio Mohamed',t.partner,3,2,1,6,4,true)}${grow(2,'Karim Adel','Hassan Samir',3,1,2,3,-5)}${grow(3,'Ali Farouk','Tarek Mansour',3,0,3,0,-8)}</div></div>`;
  const match=(stage,round,when,court,fmt,opp,mine,theirs)=>{const won=mine.filter((x,i)=>x>theirs[i]).length>theirs.filter((x,i)=>x>mine[i]).length;
   const sets=(a,b)=>`<div class="sets">${a.map((x,i)=>`<span class="set ${x>b[i]?'w':'l'}">${x}</span>`).join('')}</div>`;
