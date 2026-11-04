@@ -322,7 +322,7 @@ main{padding-block:18px 48px}
 .players{display:flex;flex-direction:column;gap:6px;min-width:0}
 .pl{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--navy);min-width:0}
 .pl i{font-style:normal;line-height:1.15;overflow-wrap:anywhere}
-.full{display:none}.short{display:inline}@media (min-width:520px){.full{display:inline}.short{display:none}.pl{font-size:13px}}
+i.full{display:none}i.short{display:inline}@media (min-width:520px){i.full{display:inline}i.short{display:none}.pl{font-size:13px}}
 .pl .av{flex:none;width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--navy);font-size:9px;font-weight:800;display:grid;place-items:center;border:1.5px solid #fff;box-shadow:0 0 0 1px var(--gold)}
 .pl .av.b{background:var(--blue);color:#fff;box-shadow:0 0 0 1px var(--blue)}
 .cell{font-family:var(--display);font-size:15px;text-align:center;color:var(--navy);background:var(--surface-2);border-radius:7px;padding:6px 0;line-height:1}
@@ -361,6 +361,7 @@ footer{text-align:center;font-size:11px;color:var(--muted);padding:16px}
 <body>
 
 <div class="proto gutter"><div class="in" style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center"><b>Prototype controls</b>
+  <label>Page <select id="pcPage"><option value="" selected>Player Profile</option><option value="tournaments.html">Tournaments</option></select></label>
   <label>View <select id="pcView"><option value="private">Private (me)</option><option value="public">Public (other player)</option></select></label>
   <label>Membership <select id="pcClub"><option value="none">None</option><option value="basic" selected>Basic</option><option value="pro">B-Pro</option><option value="prime">B-Prime</option></select></label>
   <label>Wallet <select id="pcBal"><option value="pos" selected>Positive</option><option value="neg">Negative</option></select></label>
@@ -599,6 +600,9 @@ $('#pcClub').onchange=e=>{S.club=e.target.value;syncHero();renderMain();};
 $('#pcBal').onchange=e=>{S.bal=e.target.value;renderMain();};
 $('#pcVer').onchange=e=>{S.ver=e.target.value==='1';syncHero();renderMain();};
 $('#editIcon').onclick=()=>{S.tab='settings';renderMenu();renderMain();window.scrollTo({top:$('.menu').offsetTop-8,behavior:'smooth'});};
+$('#pcPage').onchange=e=>{if(e.target.value)location.href=e.target.value;};
+/* deep links from the Tournaments module: app.html#history, app.html#public */
+{const h=location.hash.slice(1).split('/');if(h.includes('public'))S.view='public';const t=h.find(x=>TABS[S.view].some(y=>y[0]===x));if(t)S.tab=t;}
 wire(document);
 syncHero();renderMenu();renderMain();
 </script>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bassio Player Profile · UI/UX Preview</title>
+<title>Bassio · UI/UX Preview</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@500;600;700&display=swap">
 <style>
 :root{--navy:#02325d;--blue:#2a80cd;--gold:#d8b355;--line:#d9e3ef;--bg:#eef2f7;color-scheme:light}
@@ -29,26 +29,38 @@ iframe{border:0;background:#fff}
 </head>
 <body>
 <header>
-  <h1>Bassio Player Profile<small>UI/UX prototype · Stadium Dashboard</small></h1>
+  <h1>Bassio UI/UX Preview<small>Player Profile · Tournaments · Stadium Dashboard</small></h1>
+  <div style="display:flex;flex-wrap:wrap;gap:8px">
+  <nav class="tabs" id="mods">
+    <a data-m="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Player Profile</a>
+    <a data-m="tournaments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a2 2 0 0 0 0 4h3M17 6h3a2 2 0 0 1 0 4h-3"/></svg>Tournaments</a>
+  </nav>
   <nav class="tabs" id="tabs">
-    <a href="#web" data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Web View</a>
-    <a href="#mobile" data-v="mobile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Mobile View</a>
+    <a data-v="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Web View</a>
+    <a data-v="mobile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Mobile View</a>
     <a href="brand.html" class="brand">Brand Guide</a>
   </nav>
+  </div>
 </header>
 <main id="main"></main>
 <div class="hint">Mobile View shows the app inside a 390 × 844 phone frame. On an actual phone the app opens full-screen automatically.</div>
 <script>
+// Hash = #<view>[/<module>], e.g. #web, #mobile/tournaments.
+const PAGE={profile:'app.html',tournaments:'tournaments.html'};
+function parse(){const [v,m]=(location.hash||'').slice(1).split('/');const isPhone=window.matchMedia('(max-width:600px)').matches;
+  return {v:v==='web'||v==='mobile'?v:isPhone?'mobile':'web',m:m==='tournaments'?'tournaments':'profile'};}
 // Phones open the prototype directly: iOS Safari stretches iframes to content height, which breaks scrolling.
-if(window.matchMedia("(max-width:600px)").matches||/iPhone|Android.+Mobile/i.test(navigator.userAgent)){location.replace("app.html");}
+if(window.matchMedia("(max-width:600px)").matches||/iPhone|Android.+Mobile/i.test(navigator.userAgent)){location.replace(PAGE[parse().m]);}
 const main=document.getElementById('main');
-function show(){
-  let v=(location.hash||'').slice(1);
-  const isPhone=window.matchMedia('(max-width:600px)').matches;
-  if(v!=='web'&&v!=='mobile')v=isPhone?'mobile':'web';
-  document.querySelectorAll('#tabs a[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
-  main.innerHTML=v==='web'?'<iframe class="web" src="app.html" title="Bassio Player Profile · web"></iframe>':'<div class="phone"><iframe src="app.html" title="Bassio Player Profile · mobile"></iframe></div>';
-}
+const hashOf=(v,m)=>'#'+v+(m==='tournaments'?'/tournaments':'');
+function sync(){const {v,m}=parse();
+  document.querySelectorAll('#tabs a[data-v]').forEach(a=>{a.classList.toggle('on',a.dataset.v===v);a.href=hashOf(a.dataset.v,m);});
+  document.querySelectorAll('#mods a').forEach(a=>{a.classList.toggle('on',a.dataset.m===m);a.href=hashOf(v,a.dataset.m);});}
+function show(){const {v,m}=parse();sync();
+  const ttl=m==='tournaments'?'Bassio Tournaments':'Bassio Player Profile';
+  main.innerHTML=v==='web'?`<iframe class="web" src="${PAGE[m]}" title="${ttl} · web"></iframe>`:`<div class="phone"><iframe src="${PAGE[m]}" title="${ttl} · mobile"></iframe></div>`;
+  // the prototype's own Page switch navigates inside the frame; keep the shell tabs in step
+  const f=main.querySelector('iframe');f.onload=()=>{try{const nm=/tournaments\.html$/.test(f.contentWindow.location.pathname)?'tournaments':'profile';if(nm!==parse().m){history.replaceState(null,'',hashOf(parse().v,nm));sync();}}catch(e){}};}
 window.addEventListener('hashchange',show);show();
 </script>
 </body>
