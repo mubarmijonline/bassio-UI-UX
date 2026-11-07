@@ -626,6 +626,8 @@ footer{text-align:center;font-size:11px;color:var(--muted);padding:16px}
 .okmsg h3{font-size:28px;text-transform:uppercase;color:var(--navy);line-height:1.05}
 .okmsg p{margin:0;font-size:13px;color:var(--muted)}
 
+.prow.ineligible{opacity:.55;cursor:not-allowed;background:var(--bg)}
+.prow .el{display:block;font-weight:700;margin-top:2px}.prow .el.ok{color:var(--green)}.prow .el.no{color:var(--wred)}
 /* looking for a partner */
 .intro{margin:0;font-size:13px}
 .pcards{display:grid;grid-template-columns:1fr;gap:10px}
@@ -744,7 +746,7 @@ ALL.forEach(t=>{t.end=t.end||t.start;t.key=t.id;t.season=+t.start.slice(0,4);
  if(t.type==='mega'){t.prize=t.levels.reduce((s,l)=>s+l.prize,0);t.levels.forEach(l=>Object.assign(l,{type:'level',key:t.id+'/'+l.id,parent:t,season:t.season,n:CAT[l.cat].n+' '+l.lvl}));}});
 const byId=id=>ALL.find(t=>t.id===id);
 const PL={
- 'BC-00871':{n:'Omar Khaled',g:'M',sos:4.8,age:33,side:'Right'},'BC-01102':{n:'Ahmed Nabil',g:'M',sos:5.9,age:29,side:'Left'},
+ 'BC-00871':{n:'Omar Khaled',g:'M',sos:4.8,age:33,side:'Right'},'BC-01102':{n:'Ahmed Nabil',g:'M',sos:3.8,age:29,side:'Left'},
  'BC-00455':{n:'Mostafa Saeed',g:'M',sos:5.3,age:31,side:'Right'},'BC-00932':{n:'Nour Hassan',g:'F',sos:4.2,age:27,side:'Right'},
  'BC-01377':{n:'Karim Adel',g:'M',sos:4,age:26,side:'Both'},'BC-01410':{n:'Salma Fouad',g:'F',sos:3.6,age:24,side:'Left'},
  'BC-00618':{n:'Hazem Nabil',g:'M',sos:6.4,age:38,side:'Left'},'BC-01555':{n:'Farida Samir',g:'F',sos:5.1,age:30,side:'Right'},
@@ -977,7 +979,8 @@ function openReg(o,step){if(!S.auth)return authGate();R={o,step:step||1,code:ste
  R.md=modal(`Register Your Team<small>${title(o)}</small>`,'<div class="rb" id="rb"></div>',()=>{R=null;});regRender();}
 function regRender(){const b=R.md.querySelector('#rb');b.innerHTML=[regA,regB,regC][R.step-1]();wire(b);regBind(b);R.md.querySelector('.box').scrollTop=0;}
 const steps=n=>`<ol class="steps">${['Partner','Payment','Confirmation'].map((l,i)=>`<li class="${i+1<n?'done':i+1===n?'on':''}">${l}</li>`).join('')}</ol>`;
-const prow=(c,sel)=>{const p=PL[c];return `<button class="prow ${sel?'sel':''}" data-code="${c}"><img src="${avOf(p)}" alt=""><span><b>${p.n}</b><small>${c} · ${p.g==='F'?'Female':'Male'} · ${p.side} side</small></span><span class="sosn"><b>${p.sos.toFixed(1)}</b><small>SoS</small></span></button>`;};
+const prow=(c,sel)=>{const p=PL[c],e=R&&R.o?elig(R.o,p):null,ok=!e||e.ok;const why=e&&!e.ok?e.r[0].replace(/^Your team average/,'Team average').replace(/ is above this level’s (\S+) (maximum per player|limit)\.?$/,' > $1'):'';
+ return `<button class="prow ${sel?'sel':''} ${ok?'':'ineligible'}" data-code="${c}" ${ok?'':'disabled'}><img src="${avOf(p)}" alt=""><span><b>${p.n}</b><small>${c} · ${p.g==='F'?'Female':'Male'} · ${p.side} side</small>${e?`<small class="el ${ok?'ok':'no'}">${ok?'Eligible · team avg '+e.a.toFixed(2):'Not eligible · '+why}</small>`:''}</span><span class="sosn"><b>${p.sos.toFixed(1)}</b><small>SoS</small></span></button>`;};
 function eligNote(o,p,e){const [a,m]=sosOf(o),f=n=>n.split(' ')[0];
  return e.ok?`<div class="note green">${I.check}<div><b>Eligible team</b>${f(ME.n)} ${ME.sos.toFixed(1)} + ${f(p.n)} ${p.sos.toFixed(1)} → team average ${e.a.toFixed(2)} (limit ${a.toFixed(1)}), and both players are within the ${m.toFixed(1)} maximum.</div></div>`
  :`<div class="note red">${I.alert}<div><b>This team is not eligible</b><ul>${e.r.map(x=>`<li>${x}</li>`).join('')}</ul>Please choose another partner who fits ${lvName(o)}.</div></div>`;}
@@ -986,7 +989,8 @@ function rSearch(v){const t=v.trim();if(!t)return '';const c=t.toUpperCase().rep
  if(PL[c])return `<div class="kicker">Search result</div>${prow(c,c===R.code)}`;
  return c.replace(/\W/g,'').length>=7?`<div class="note red">${I.alert}<div><b>No player found</b>No account uses “${esc(t)}”. Your partner needs a Bassio account before you can team up.</div></div>`:'';}
 function regA(){const o=R.o,p=R.code&&PL[R.code],e=p&&elig(o,p);
- return `${steps(1)}<div class="card"><h2>Select a partner</h2><label class="search">${I.search}<input id="rq" placeholder="Partner’s referral code · e.g. BC-01377" autocomplete="off" spellcheck="false" aria-label="Partner referral code"></label><span class="hint">Every player’s referral code is on their profile, under their name.</span><div id="rres"></div>
+ const [cap,mx]=sosOf(o),meLocked=ME.sos>mx||(o.cat==='women'&&ME.g!=='F');
+ return `${steps(1)}${meLocked?`<div class="note red">${I.alert}<div><b>This level is locked for you</b>${o.cat==='women'&&ME.g!=='F'?'Women levels are open to female players only.':`Your SoS ${ME.sos.toFixed(1)} is above ${lvName(o)}’s ${mx.toFixed(1)} maximum per player, so no partner can make this team eligible.`} Pick a higher level, or ask the admins to review your SoS.</div></div>`:`<div class="note">${I.info}<div><b>${lvName(o)} limits</b> Team average ≤ ${cap.toFixed(1)} · each player ≤ ${mx.toFixed(1)}. You are ${ME.sos.toFixed(1)}, so a partner up to ${Math.min(mx,cap*2-ME.sos).toFixed(1)} keeps the team eligible.</div></div>`}<div class="card"><h2>Select a partner</h2><label class="search">${I.search}<input id="rq" placeholder="Partner’s referral code · e.g. BC-01377" autocomplete="off" spellcheck="false" aria-label="Partner referral code"></label><span class="hint">Every player’s referral code is on their profile, under their name.</span><div id="rres"></div>
  <div class="kicker">Previous partners</div><div class="plist">${PREV.map(c=>prow(c,c===R.code)).join('')}</div></div>
  ${e?eligNote(o,p,e):''}<div class="btns end"><button class="btn out" data-close>Cancel</button><button class="btn gold" id="rNext" ${e&&e.ok?'':'disabled'}>Next${I.chevR}</button></div>`;}
 function transferPart(amt){return `<div class="kicker">Send EGP ${egp(amt)} with any of these</div><div class="pms">${PM.map(([n,ab,bg,rows,link])=>`<div class="pm"><span class="lg" style="background:${bg}" title="${n} logo">${ab}</span><div class="pmb"><b>${n}</b><dl>${rows.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}<button class="cp" data-cp="${v}" aria-label="Copy ${k}">${I.copy}</button></dd></div>`).join('')}</dl>${link?`<button class="linkish" data-toast="Opens Instapay with the amount filled in">${I.ext}${link}</button>`:''}</div></div>`).join('')}</div>
