@@ -626,6 +626,7 @@ footer{text-align:center;font-size:11px;color:var(--muted);padding:16px}
 .okmsg h3{font-size:28px;text-transform:uppercase;color:var(--navy);line-height:1.05}
 .okmsg p{margin:0;font-size:13px;color:var(--muted)}
 
+.testtag{display:inline-block;margin-top:4px;font-size:11px;font-weight:700;color:var(--golddark);background:#fff;border:1px dashed var(--gold);border-radius:6px;padding:2px 6px}
 .prow.ineligible{opacity:.55;cursor:not-allowed;background:var(--bg)}
 .prow .el{display:block;font-weight:700;margin-top:2px}.prow .el.ok{color:var(--green)}.prow .el.no{color:var(--wred)}
 /* looking for a partner */
@@ -752,7 +753,7 @@ const PL={
  'BC-00618':{n:'Hazem Nabil',g:'M',sos:6.4,age:38,side:'Left'},'BC-01555':{n:'Farida Samir',g:'F',sos:5.1,age:30,side:'Right'},
  'BC-01290':{n:'Youssef Hany',g:'M',sos:3.2,age:22,side:'Right'},'BC-00777':{n:'Laila Mansour',g:'F',sos:2.8,age:21,side:'Both'},
 };
-const PREV=['BC-00871','BC-01102','BC-00455','BC-00932'];
+const PREV=['BC-00871','BC-01102','BC-00455','BC-00932','BC-01290','BC-00777'];
 const LFP=['BC-01377','BC-01410','BC-00618','BC-01555','BC-01290','BC-00777'];
 const MF=['Youssef','Karim','Ali','Seif','Mahmoud','Amr','Khaled','Hazem','Fady','Tamer','Ahmed','Yassin','Marwan','Hesham','Ziad','Hany','Sherif','Ramy','Islam','Mina','Wael','Moataz','Belal','Nader','Ayman','Adham','Tarek','Mostafa','Hassan','Sameh'];
 const FF=['Nour','Salma','Farida','Malak','Laila','Hana','Mariam','Yasmin','Jana','Rana','Dina','Habiba','Nadine','Lina','Reem','Aya','Sara','Menna','Nada','Hagar','Rawan','Shahd','Judy','Mai'];
@@ -762,7 +763,7 @@ const SAMPLE='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://w
 const SLIDES=[['M1','Live now','Follow it live'],['m13','Registration open','Register your team'],['M3','Registration open','Explore the levels']];
 
 /* ---------- state ---------- */
-const S={auth:true,tab:'mini',season:2027,month:TODAY.getMonth()+1,cat:'all',lvl:'all',view:'std',calDay:null,pt:'',sub:'',q:'',
+const S={auth:true,sosMode:'auto',tab:'mini',season:2027,month:TODAY.getMonth()+1,cat:'all',lvl:'all',view:'std',calDay:null,pt:'',sub:'',q:'',
  reg:{m1:'approved',m4:'pending',m9:'canceled',m7:'approved'},partner:{m1:'BC-00871',m4:'BC-00932',m9:'BC-00871',m7:'BC-00871'},
  paid:{m1:'My Wallet',m4:'Instapay',m9:'Instapay',m7:'My Wallet'},why:{m9:'Payment not verified · the transfer screenshot did not show the full EGP 1,000.'},stage:{},lfp:{}};
 let CUR,R=null,HT=0;
@@ -975,7 +976,9 @@ function pLevels(o){return `<div class="lvls">${o.levels.map(l=>{const [a,m]=sos
 /* ---------- flow: register your team ---------- */
 function authGate(){const md=modal('Sign in to continue',`<p class="muted" style="margin:0;font-size:13px">Registration, My Team and Looking For A Partner need a Bassio account.</p><div class="btns end"><button class="btn out" data-close data-toast="Sign-up flow (prototype)">Create account</button><button class="btn navy" id="gIn">Sign in</button></div>`);
  md.querySelector('#gIn').onclick=()=>{md.remove();S.auth=true;renderAll();toast('Signed in as Bassio');};}
-function openReg(o,step){if(!S.auth)return authGate();R={o,step:step||1,code:step===2?S.partner[o.key]:null,qv:'',m:null,cr:0,sv:0,proof:null,rest:false};
+const REAL_ME={sos:4.5,g:'M'};
+function fitMe(o){const [cap,mx]=sosOf(o);if(S.sosMode==='auto'){ME.sos=Math.min(REAL_ME.sos,+(cap-0.3).toFixed(1));ME.g=o.cat==='women'?'F':o.cat==='mixed'?'M':REAL_ME.g;ME.fitted=ME.sos!==REAL_ME.sos||ME.g!==REAL_ME.g;}else{ME.sos=REAL_ME.sos;ME.g=REAL_ME.g;ME.fitted=false;}}
+function openReg(o,step){if(!S.auth)return authGate();fitMe(o);R={o,step:step||1,code:step===2?S.partner[o.key]:null,qv:'',m:null,cr:0,sv:0,proof:null,rest:false};
  R.md=modal(`Register Your Team<small>${title(o)}</small>`,'<div class="rb" id="rb"></div>',()=>{R=null;});regRender();}
 function regRender(){const b=R.md.querySelector('#rb');b.innerHTML=[regA,regB,regC][R.step-1]();wire(b);regBind(b);R.md.querySelector('.box').scrollTop=0;}
 const steps=n=>`<ol class="steps">${['Partner','Payment','Confirmation'].map((l,i)=>`<li class="${i+1<n?'done':i+1===n?'on':''}">${l}</li>`).join('')}</ol>`;
@@ -990,8 +993,8 @@ function rSearch(v){const t=v.trim();if(!t)return '';const c=t.toUpperCase().rep
  return c.replace(/\W/g,'').length>=7?`<div class="note red">${I.alert}<div><b>No player found</b>No account uses “${esc(t)}”. Your partner needs a Bassio account before you can team up.</div></div>`:'';}
 function regA(){const o=R.o,p=R.code&&PL[R.code],e=p&&elig(o,p);
  const [cap,mx]=sosOf(o),meLocked=ME.sos>mx||(o.cat==='women'&&ME.g!=='F');
- return `${steps(1)}${meLocked?`<div class="note red">${I.alert}<div><b>This level is locked for you</b>${o.cat==='women'&&ME.g!=='F'?'Women levels are open to female players only.':`Your SoS ${ME.sos.toFixed(1)} is above ${lvName(o)}’s ${mx.toFixed(1)} maximum per player, so no partner can make this team eligible.`} Pick a higher level, or ask the admins to review your SoS.</div></div>`:`<div class="note">${I.info}<div><b>${lvName(o)} limits</b> Team average ≤ ${cap.toFixed(1)} · each player ≤ ${mx.toFixed(1)}. You are ${ME.sos.toFixed(1)}, so a partner up to ${Math.min(mx,cap*2-ME.sos).toFixed(1)} keeps the team eligible.</div></div>`}<div class="card"><h2>Select a partner</h2><label class="search">${I.search}<input id="rq" placeholder="Partner’s referral code · e.g. BC-01377" autocomplete="off" spellcheck="false" aria-label="Partner referral code"></label><span class="hint">Every player’s referral code is on their profile, under their name.</span><div id="rres"></div>
- <div class="kicker">Previous partners</div><div class="plist">${PREV.map(c=>prow(c,c===R.code)).join('')}</div></div>
+ return `${steps(1)}${meLocked?`<div class="note red">${I.alert}<div><b>This level is locked for you</b>${o.cat==='women'&&ME.g!=='F'?'Women levels are open to female players only.':`Your SoS ${ME.sos.toFixed(1)} is above ${lvName(o)}’s ${mx.toFixed(1)} maximum per player, so no partner can make this team eligible.`} Pick a higher level, or ask the admins to review your SoS.</div></div>`:`<div class="note">${I.info}<div><b>${lvName(o)} limits</b> Team average ≤ ${cap.toFixed(1)} · each player ≤ ${mx.toFixed(1)}. You are ${ME.sos.toFixed(1)}, so a partner up to ${Math.min(mx,cap*2-ME.sos).toFixed(1)} keeps the team eligible.${ME.fitted?` <span class="testtag">Test mode · your SoS is set to ${ME.sos.toFixed(1)}${ME.g!==REAL_ME.g?' and gender to '+(ME.g==='F'?'female':'male'):''} for this level so you can try the flow</span>`:''}</div></div>`}<div class="card"><h2>Select a partner</h2><label class="search">${I.search}<input id="rq" placeholder="Partner’s referral code · e.g. BC-01377" autocomplete="off" spellcheck="false" aria-label="Partner referral code"></label><span class="hint">Every player’s referral code is on their profile, under their name.</span><div id="rres"></div>
+ <div class="kicker">Previous partners <span class="muted" style="font-weight:500;text-transform:none;letter-spacing:0">· eligible first</span></div><div class="plist">${[...PREV].sort((x,y)=>(elig(o,PL[y]).ok?1:0)-(elig(o,PL[x]).ok?1:0)).map(c=>prow(c,c===R.code)).join('')}</div></div>
  ${e?eligNote(o,p,e):''}<div class="btns end"><button class="btn out" data-close>Cancel</button><button class="btn gold" id="rNext" ${e&&e.ok?'':'disabled'}>Next${I.chevR}</button></div>`;}
 function transferPart(amt){return `<div class="kicker">Send EGP ${egp(amt)} with any of these</div><div class="pms">${PM.map(([n,ab,bg,rows,link])=>`<div class="pm"><span class="lg" style="background:${bg}" title="${n} logo">${ab}</span><div class="pmb"><b>${n}</b><dl>${rows.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}<button class="cp" data-cp="${v}" aria-label="Copy ${k}">${I.copy}</button></dd></div>`).join('')}</dl>${link?`<button class="linkish" data-toast="Opens Instapay with the amount filled in">${I.ext}${link}</button>`:''}</div></div>`).join('')}</div>
  <div class="kicker">Proof of payment</div><label class="upl ${R.proof?'has':''}"><input type="file" accept="image/*" id="rFile">${R.proof?`<img src="${R.proof}" alt="Payment screenshot preview"><span><b>Screenshot attached</b><small>Tap to replace it</small></span>`:`<span class="ic">${I.upload}</span><b>Upload a screenshot of your transfer</b><small>JPG or PNG · amount, date and reference visible</small>`}</label>
@@ -1042,12 +1045,13 @@ function lfpBody(o){const list=[...(S.lfp[o.key]?[ME.code]:[]),...LFP];
 /* ---------- render ---------- */
 function route(){const p=location.hash.replace(/^#\/?/,'').split('/');if(p[0]==='t'){const t=byId(p[1]);if(t){if(t.type==='mega'&&p[2]){const l=t.levels.find(x=>x.id===p[2]);if(l)return {k:'level',o:l,m:t};}return {k:t.type,o:t};}}return {k:'home'};}
 function renderProto(){const c=CUR,o=c.o;
- $('#proto').innerHTML=`<div class="in"><b>Prototype controls</b><label>Page <select id="pcPage"><option value="app.html">Player Profile</option><option value="" selected>Tournaments</option></select></label><label>Signed in <select id="pcAuth">${opt(1,'Yes',+S.auth)}${opt(0,'No',+S.auth)}</select></label>
+ $('#proto').innerHTML=`<div class="in"><b>Prototype controls</b><label>Page <select id="pcPage"><option value="app.html">Player Profile</option><option value="" selected>Tournaments</option></select></label><label>Signed in <select id="pcAuth">${opt(1,'Yes',+S.auth)}${opt(0,'No',+S.auth)}</select></label><label>My SoS <select id="pcSos">${opt('auto','Auto · fits every level (testing)',S.sosMode)}${opt('real','4.5 · real rules',S.sosMode)}</select></label>
  ${o?`<label>Stage <select id="pcStage">${opt('','Auto · '+ST[o.status],S.stage[o.key]||'')}${Object.entries(ST).map(([k,v])=>opt(k,v,S.stage[o.key]||'')).join('')}</select></label>`:''}
  ${o&&c.k!=='mega'?`<label>My team <select id="pcTeam">${opt('','Not registered',S.reg[o.key]||'')}${Object.entries(TS).map(([k,v])=>opt(k,v,S.reg[o.key]||'')).join('')}</select></label>`:''}<span class="today">Prototype date · Thu 13 May 2027</span></div>`;
  $('#pcPage').onchange=e=>{if(e.target.value)location.href=e.target.value;};
  $('#pcAuth').onchange=e=>{S.auth=e.target.value==='1';renderAll();};
  const st=$('#pcStage');if(st)st.onchange=()=>{if(st.value)S.stage[o.key]=st.value;else delete S.stage[o.key];renderAll();};
+ const ss=$('#pcSos');if(ss)ss.onchange=()=>{S.sosMode=ss.value;renderAll();toast(ss.value==='auto'?'Test mode: your SoS fits every level':'Real rules: SoS 4.5');};
  const te=$('#pcTeam');if(te)te.onchange=()=>{const v=te.value;if(!v){delete S.reg[o.key];}else{S.reg[o.key]=v;S.partner[o.key]=S.partner[o.key]||(o.cat==='mixed'?'BC-00932':'BC-00871');S.paid[o.key]=S.paid[o.key]||'Money Transfer';if(v==='canceled')S.why[o.key]=S.why[o.key]||'Payment not verified · the transfer screenshot did not show the full amount.';}renderAll();};}
 function renderAll(){CUR=route();const c=CUR;
  if(c.k!=='home'){const tabs=TT[c.k==='mega'?'mega':'mini'];if(!tabs.some(t=>t[0]===S.pt&&!tabOff(c.o,t[0])))S.pt=tabs[0][0];}
